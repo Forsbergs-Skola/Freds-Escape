@@ -57,4 +57,8 @@ protected:
     // Called when the puzzle is beaten
     UFUNCTION(BlueprintNativeEvent, Category = "Puzzle")
     void OnSolved();
+
+    // Called when the puzzle is failed
+    UFUNCTION(BlueprintNativeEvent, Category = "Puzzle")
+    void OnFailed();
 };

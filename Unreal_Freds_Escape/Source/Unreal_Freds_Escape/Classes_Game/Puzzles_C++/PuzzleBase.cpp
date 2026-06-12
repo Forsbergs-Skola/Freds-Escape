@@ -49,9 +49,14 @@ void APuzzleBase::SetState(EPuzzleState newState) //Checks states and changes st
         }
     }
     // If the player failed and we are allowed to reset(for later use like a timed Puzzle)
-    else if (currentState == EPuzzleState::Failed && resetOnFailure)
+    else if (currentState == EPuzzleState::Failed)
     {
-        SetState(EPuzzleState::Active);
+        OnFailed();
+        
+        if (resetOnFailure)
+        {
+            SetState(EPuzzleState::Active);
+        }
     }
 }
 
@@ -59,4 +64,10 @@ void APuzzleBase::OnSolved_Implementation()
 {
     // Log that we beat it
     UE_LOG(LogTemp, Log, TEXT("Puzzle Solved: %s"), *GetName());
+}
+
+void APuzzleBase::OnFailed_Implementation()
+{
+    // Log that we failed it
+    UE_LOG(LogTemp, Log, TEXT("Puzzle Failed: %s"), *GetName());
 }

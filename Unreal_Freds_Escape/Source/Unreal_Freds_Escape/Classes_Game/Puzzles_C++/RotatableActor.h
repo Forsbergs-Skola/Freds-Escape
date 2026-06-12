@@ -23,6 +23,10 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Puzzle")
     void NotifyRotationChanged();
 
+    // The number that will be displayed under the frame for Puzzle 2
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Puzzle")
+    int32 FrameNumber;
+
 protected:
     virtual void BeginPlay() override;
 };
