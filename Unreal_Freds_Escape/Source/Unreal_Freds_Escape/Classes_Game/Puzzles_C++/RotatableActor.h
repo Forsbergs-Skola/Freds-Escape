@@ -17,7 +17,7 @@ public:
 
     // The manager that this toy reports to
     UPROPERTY(EditInstanceOnly, Category = "Puzzle")
-    ARotationPuzzle* owningPuzzle;
+    class ARotationPuzzle* owningPuzzle;
 
     // Blueprints call this to shout to the manager that it was moved
     UFUNCTION(BlueprintCallable, Category = "Puzzle")
