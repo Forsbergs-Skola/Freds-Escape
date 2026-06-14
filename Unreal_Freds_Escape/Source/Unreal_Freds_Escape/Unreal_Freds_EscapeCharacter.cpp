@@ -7,6 +7,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "EnhancedInputComponent.h"
 #include "InputActionValue.h"
+#include "InteractionSystem/InteractionComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Unreal_Freds_Escape.h"
 
@@ -33,7 +34,7 @@ AUnreal_Freds_EscapeCharacter::AUnreal_Freds_EscapeCharacter()
 	FirstPersonCameraComponent->FirstPersonFieldOfView = 70.0f;
 	FirstPersonCameraComponent->FirstPersonScale = 0.6f;
 
-	// configure the character comps
+	// Configure the character comps
 	GetMesh()->SetOwnerNoSee(true);
 	GetMesh()->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::WorldSpaceRepresentation;
 
@@ -42,6 +43,9 @@ AUnreal_Freds_EscapeCharacter::AUnreal_Freds_EscapeCharacter()
 	// Configure character movement
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
 	GetCharacterMovement()->AirControl = 0.5f;
+
+	// Create the interaction component
+	InteractionComponent = CreateDefaultSubobject<UInteractionComponent>(TEXT("Interaction Component"));
 }
 
 void AUnreal_Freds_EscapeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -59,6 +63,11 @@ void AUnreal_Freds_EscapeCharacter::SetupPlayerInputComponent(UInputComponent* P
 		// Looking/Aiming
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AUnreal_Freds_EscapeCharacter::LookInput);
 		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &AUnreal_Freds_EscapeCharacter::LookInput);
+
+		// Interacting
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, InteractionComponent, &UInteractionComponent::TryInteract);
+		EnhancedInputComponent->BindAction(InspectRotateAction, ETriggerEvent::Started, InteractionComponent, &UInteractionComponent::BeginRotate);
+		EnhancedInputComponent->BindAction(InspectRotateAction, ETriggerEvent::Completed, InteractionComponent, &UInteractionComponent::EndRotate);
 	}
 	else
 	{
@@ -89,9 +98,14 @@ void AUnreal_Freds_EscapeCharacter::LookInput(const FInputActionValue& Value)
 
 void AUnreal_Freds_EscapeCharacter::DoAim(float Yaw, float Pitch)
 {
+	if (InteractionComponent && InteractionComponent->bIsInspecting)
+	{
+		InteractionComponent->AddMouseX(Yaw);
+		InteractionComponent->AddMouseY(Pitch);
+		return;
+	}
 	if (GetController())
 	{
-		// pass the rotation inputs
 		AddControllerYawInput(Yaw);
 		AddControllerPitchInput(Pitch);
 	}
@@ -99,9 +113,9 @@ void AUnreal_Freds_EscapeCharacter::DoAim(float Yaw, float Pitch)
 
 void AUnreal_Freds_EscapeCharacter::DoMove(float Right, float Forward)
 {
+	if (InteractionComponent && InteractionComponent->bIsInspecting) return;
 	if (GetController())
 	{
-		// pass the move inputs
 		AddMovementInput(GetActorRightVector(), Right);
 		AddMovementInput(GetActorForwardVector(), Forward);
 	}
