@@ -57,6 +57,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* InspectRotateAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* PressedClickAction;
 	
 public:
 	AUnreal_Freds_EscapeCharacter();

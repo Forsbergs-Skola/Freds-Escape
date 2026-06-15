@@ -1,6 +1,7 @@
 #include "InteractionComponent.h"
 #include "Unreal_Freds_EscapeCameraManager.h"
 #include "IInteractable.h"
+#include "IPressedInteractable.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -30,6 +31,12 @@ void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+    if (bIsViewingPressed)
+    {
+		TickPressedView(DeltaTime);
+		return;
+	}
+
     if (bIsInspecting)
     {
         if (UCameraComponent* Cam = GetCamera())
@@ -56,10 +63,16 @@ void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType,
             if (GetWorld()->SweepSingleByChannel(Hit, Start, End, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeSphere(15.f), Params))
             {
                 bool bHasInterface = Hit.GetActor()->GetClass()->ImplementsInterface(UInteractable::StaticClass());
+				bool bHasPressedInterface = Hit.GetActor()->GetClass()->ImplementsInterface(UPressedInteractable::StaticClass());
+
                 if (Hit.GetActor() && bHasInterface)
                 {
                     FocusedActor = Hit.GetActor();
                 }
+                else if (Hit.GetActor() && bHasPressedInterface)
+                {
+                    FocusedActor = Hit.GetActor();
+				}
                 else
                 {
                     FocusedActor = nullptr;
@@ -104,7 +117,32 @@ void UInteractionComponent::TryInteract()
         return;
     }
 
+    if (bIsViewingPressed)
+    {
+        // Stop viewing pressed buttons
+		ExitPressedView();
+        return;
+    }
+
     if (!FocusedActor) return;
+
+    // Check keypad interface first
+    if (FocusedActor->GetClass()->ImplementsInterface(UPressedInteractable::StaticClass()))
+    {
+		PressedActor = FocusedActor;
+		bIsViewingPressed = true;
+
+		// Ask the BP actor where the camera should move to focus on the buttons
+		PressedFocusWorldLocation = IPressedInteractable::Execute_OnPressedFocus(PressedActor, OwnerController);
+
+        if (OwnerController)
+			OriginalControlRotation = OwnerController->GetControlRotation();
+
+        if (ACharacter* Char = Cast<ACharacter>(GetOwner()))
+			Char->GetCharacterMovement()->DisableMovement();
+
+		return;
+    }
 
     bool bAccepted = IInteractable::Execute_OnInteract(FocusedActor, OwnerController);
     if (bAccepted)
@@ -159,4 +197,96 @@ UCameraComponent* UInteractionComponent::GetCamera() const
         return Char->FindComponentByClass<UCameraComponent>();
     }
     return nullptr;
+}
+
+
+void UInteractionComponent::TickPressedView(float DeltaTime)
+{
+	if (!OwnerController || !PressedActor) return;
+
+	//Smoothly rotate the controller to look at the pressed button focus point
+	UCameraComponent* Cam = GetCamera();
+
+    if (Cam)
+    {
+		FVector CamLoc = Cam->GetComponentLocation();
+		FRotator TargetRot = (PressedFocusWorldLocation - CamLoc).Rotation();
+		FRotator Current = OwnerController->GetControlRotation();
+		FRotator Smoothed = FMath::RInterpTo(Current, TargetRot, DeltaTime, PressedFocusSpeed);
+		OwnerController->SetControlRotation(Smoothed);
+    }
+
+    TickPressedDOF(DeltaTime, true);
+}
+
+
+void UInteractionComponent::TickPressedDOF(float DeltaTime, bool bEnable)
+{
+	UCameraComponent* Cam = GetCamera();
+
+    if (!Cam) return;
+
+    PressedDOFAlpha = FMath::FInterpTo(PressedDOFAlpha, bEnable ? 1.f : 0.f, DeltaTime, DOFBlendSpeed);    Cam->PostProcessSettings.bOverride_DepthOfFieldFocalDistance = true;
+    Cam->PostProcessSettings.bOverride_DepthOfFieldFstop = true;
+    Cam->PostProcessSettings.DepthOfFieldFocalDistance = FMath::Lerp(DefaultFocalDistance, PressedFocalDistance, PressedDOFAlpha);
+	Cam->PostProcessSettings.DepthOfFieldFstop = FMath::Lerp(DefaultAperture, PressedAperture, PressedDOFAlpha);
+}
+
+
+void UInteractionComponent::TryPressingButton()
+{
+	if (!bIsViewingPressed || !OwnerController) return;
+
+    // Raycast from screen centre into the keypad actor's geometry
+    FVector Start;
+    FRotator Rotation;
+	OwnerController->GetPlayerViewPoint(Start, Rotation);
+    FVector End = Start + Rotation.Vector() * InteractionRange;
+
+    FHitResult Hit;
+    FCollisionQueryParams Params;
+    Params.AddIgnoredActor(GetOwner());
+
+    if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
+    {
+        // Only fire if we hit the pressed actor itself
+        if (Hit.GetActor() == PressedActor)
+        {
+			IPressedInteractable::Execute_OnButtonPressed(PressedActor, OwnerController, Cast<UPrimitiveComponent>(Hit.GetComponent()));
+        }
+    }
+}
+
+
+void UInteractionComponent::ExitPressedView()
+{
+    if (!bIsViewingPressed) return;
+
+    if (PressedActor)
+    {
+        IPressedInteractable::Execute_OnPressedUnfocus(PressedActor, OwnerController);
+    }
+
+    // Restore control rotation so the camera doesn't snap
+    if (OwnerController)
+    {
+        OwnerController->SetControlRotation(OriginalControlRotation);
+    }
+
+    //Blend DOF back out
+    TickPressedDOF(0.f, false);
+    PressedDOFAlpha = 0.f;
+    UCameraComponent* Cam = GetCamera();
+    
+    if (Cam)
+    {
+        Cam->PostProcessSettings.DepthOfFieldFocalDistance = DefaultFocalDistance;
+        Cam->PostProcessSettings.DepthOfFieldFstop = DefaultAperture;
+    }
+
+    PressedActor = nullptr;
+    bIsViewingPressed = false;
+
+    if (ACharacter* Char = Cast<ACharacter>(GetOwner()))
+        Char->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 }
