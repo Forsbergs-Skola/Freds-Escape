@@ -34,4 +34,16 @@ public:
     // Call this if the player hits 'Clear' or if they enter the wrong code
     UFUNCTION(BlueprintCallable, Category = "Puzzle")
     void ClearInput();
+
+    // The physical buttons that make up this keypad
+    UPROPERTY(EditInstanceOnly, Category = "Puzzle")
+    TArray<class AKeypadButton*> KeypadButtons;
+
+protected:
+    virtual void BeginPlay() override;
+
+private:
+    // Bound to the buttons' OnButtonPressed delegate
+    UFUNCTION()
+    void HandleButtonPressed(int32 Digit);
 };
