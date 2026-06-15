@@ -15,9 +15,8 @@ struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
-/**
- *  A basic first person character
- */
+class UInteractionComponent;
+
 UCLASS(abstract)
 class AUnreal_Freds_EscapeCharacter : public ACharacter
 {
@@ -30,6 +29,10 @@ class AUnreal_Freds_EscapeCharacter : public ACharacter
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FirstPersonCameraComponent;
+
+	// Interaction system 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UInteractionComponent* InteractionComponent;
 
 protected:
 
@@ -48,6 +51,12 @@ protected:
 	/** Mouse Look Input Action */
 	UPROPERTY(EditAnywhere, Category ="Input")
 	class UInputAction* MouseLookAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* InteractAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* InspectRotateAction;
 	
 public:
 	AUnreal_Freds_EscapeCharacter();

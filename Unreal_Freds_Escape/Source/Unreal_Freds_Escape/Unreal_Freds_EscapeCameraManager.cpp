@@ -5,7 +5,7 @@
 
 AUnreal_Freds_EscapeCameraManager::AUnreal_Freds_EscapeCameraManager()
 {
-	// set the min/max pitch
+	// Set the min/max pitch
 	ViewPitchMin = -70.0f;
 	ViewPitchMax = 80.0f;
 }
