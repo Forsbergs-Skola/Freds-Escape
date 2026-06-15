@@ -1,8 +1,29 @@
 #include "KeypadPuzzle.h"
+#include "KeypadButton.h"
+#include "Engine/Engine.h"
 
 AKeypadPuzzle::AKeypadPuzzle()
 {
     // Initialize properties if needed
+}
+
+void AKeypadPuzzle::BeginPlay()
+{
+    Super::BeginPlay();
+
+    // Bind to all the physical buttons assigned to this puzzle
+    for (AKeypadButton* Button : KeypadButtons)
+    {
+        if (Button)
+        {
+            Button->OnButtonPressed.AddDynamic(this, &AKeypadPuzzle::HandleButtonPressed);
+        }
+    }
+}
+
+void AKeypadPuzzle::HandleButtonPressed(int32 Digit)
+{
+    EnterDigit(Digit);
 }
 
 void AKeypadPuzzle::EnterDigit(int32 Digit)
@@ -34,10 +55,18 @@ void AKeypadPuzzle::CheckCode()
     // Check if the input perfectly matches the correct code
     if (CurrentInput == CorrectCode)
     {
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Correct code entered!"));
+        }
         SetState(EPuzzleState::Solved);
     }
     else
     {
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Wrong code entered!"));
+        }
         SetState(EPuzzleState::Failed);
         ClearInput();
     }
