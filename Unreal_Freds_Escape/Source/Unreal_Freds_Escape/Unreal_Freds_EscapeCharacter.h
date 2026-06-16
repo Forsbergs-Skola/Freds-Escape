@@ -16,6 +16,7 @@ struct FInputActionValue;
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 class UInteractionComponent;
+class UInventoryComponent;
 
 UCLASS(abstract)
 class AUnreal_Freds_EscapeCharacter : public ACharacter
@@ -34,21 +35,24 @@ class AUnreal_Freds_EscapeCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	UInteractionComponent* InteractionComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UInventoryComponent* InventoryComponent;
+
 protected:
 
-	/** Jump Input Action */
+	// Jump Input Action
 	UPROPERTY(EditAnywhere, Category ="Input")
 	UInputAction* JumpAction;
 
-	/** Move Input Action */
+	// Move Input Action
 	UPROPERTY(EditAnywhere, Category ="Input")
 	UInputAction* MoveAction;
 
-	/** Look Input Action */
+	// Look Input Action
 	UPROPERTY(EditAnywhere, Category ="Input")
 	class UInputAction* LookAction;
 
-	/** Mouse Look Input Action */
+	// Mouse Look Input Action
 	UPROPERTY(EditAnywhere, Category ="Input")
 	class UInputAction* MouseLookAction;
 
@@ -60,47 +64,52 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* PressedClickAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* StoreItemAction;
 	
 public:
 	AUnreal_Freds_EscapeCharacter();
 
 protected:
 
-	/** Called from Input Actions for movement input */
+	// Called from Input Actions for movement input
 	void MoveInput(const FInputActionValue& Value);
 
-	/** Called from Input Actions for looking input */
+	// Called from Input Actions for looking input 
 	void LookInput(const FInputActionValue& Value);
 
-	/** Handles aim inputs from either controls or UI interfaces */
+	// Handles aim inputs from either controls or UI interfaces 
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoAim(float Yaw, float Pitch);
 
-	/** Handles move inputs from either controls or UI interfaces */
+	// Handles move inputs from either controls or UI interfaces 
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoMove(float Right, float Forward);
 
-	/** Handles jump start inputs from either controls or UI interfaces */
+	// Handles jump start inputs from either controls or UI interfaces
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoJumpStart();
 
-	/** Handles jump end inputs from either controls or UI interfaces */
+	// Handles jump end inputs from either controls or UI interfaces
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoJumpEnd();
 
 protected:
 
-	/** Set up input action bindings */
+	// Set up input action bindings
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 	
 
 public:
 
-	/** Returns the first person mesh **/
+	// Returns the first person mesh
 	USkeletalMeshComponent* GetFirstPersonMesh() const { return FirstPersonMesh; }
 
-	/** Returns first person camera component **/
+	// Returns first person camera component
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+
+	UInventoryComponent* GetInventoryComponent() const { return InventoryComponent;  }
 
 };
 

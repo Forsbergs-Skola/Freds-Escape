@@ -3,12 +3,17 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "EnhancedInputComponent.h"
+#include "InventorySystem/IPickupable.h"
+#include "InventorySystem/InventoryComponent.h"
 #include "InteractionComponent.generated.h"
 
 
 class UCameraComponent;
 class AUnreal_Freds_EscapeCameraManager;
 class IPressedInteractable;
+
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnItemStored);
 
 
 UCLASS(ClassGroup = (Interaction), meta = (BlueprintSpawnableComponent))
@@ -61,6 +66,12 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Interaction|Pressed")
 	bool bIsViewingPressed = false;
 
+	UPROPERTY(BlueprintAssignable, Category = "Interaction|Inventory")
+	FOnItemStored OnItemStored;
+
+	UPROPERTY()
+	UInventoryItemData* ItemData = nullptr;
+
 	UPROPERTY()
 	AUnreal_Freds_EscapeCameraManager* CachedCameraManager = nullptr;
 
@@ -81,6 +92,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction|Pressed")
 	void TryPressingButton();
+
+	UFUNCTION(BlueprintCallable, Category = "Interaction|Inventory")
+	void StoreHeldItem();
 
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;

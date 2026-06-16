@@ -1,5 +1,6 @@
 #include "InteractionComponent.h"
 #include "Unreal_Freds_EscapeCameraManager.h"
+#include "Unreal_Freds_EscapeCharacter.h"
 #include "IInteractable.h"
 #include "IPressedInteractable.h"
 #include "Camera/CameraComponent.h"
@@ -38,9 +39,9 @@ void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
     if (bIsViewingPressed)
     {
-		TickPressedView(DeltaTime);
-		return;
-	}
+        TickPressedView(DeltaTime);
+        return;
+    }
 
     if (bIsInspecting)
     {
@@ -61,34 +62,29 @@ void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType,
             FRotator Rotation;
             OwnerController->GetPlayerViewPoint(Start, Rotation);
             FVector End = Start + Rotation.Vector() * InteractionRange;
-            FHitResult Hit;
             FCollisionQueryParams Params;
             Params.AddIgnoredActor(GetOwner());
 
-            if (GetWorld()->SweepSingleByChannel(Hit, Start, End, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeSphere(15.f), Params))
-            {
-                bool bHasInterface = Hit.GetActor()->GetClass()->ImplementsInterface(UInteractable::StaticClass());
-				bool bHasPressedInterface = Hit.GetActor()->GetClass()->ImplementsInterface(UPressedInteractable::StaticClass());
+            TArray<FHitResult> Hits;
+            FocusedActor = nullptr;
 
-                if (Hit.GetActor() && bHasInterface)
-                {
-                    FocusedActor = Hit.GetActor();
-                }
-                else if (Hit.GetActor() && bHasPressedInterface)
-                {
-                    FocusedActor = Hit.GetActor();
-				}
-                else
-                {
-                    FocusedActor = nullptr;
-                }
-            }
-            else
+            if (GetWorld()->SweepMultiByChannel(Hits, Start, End, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeSphere(15.f), Params))
             {
-                FocusedActor = nullptr;
+                for (const FHitResult& Hit : Hits)
+                {
+                    if (!Hit.GetActor()) continue;
+
+                    bool bHasInterface = Hit.GetActor()->GetClass()->ImplementsInterface(UInteractable::StaticClass());
+                    bool bHasPressedInterface = Hit.GetActor()->GetClass()->ImplementsInterface(UPressedInteractable::StaticClass());
+
+                    if (bHasInterface || bHasPressedInterface)
+                    {
+                        FocusedActor = Hit.GetActor();
+                        break;
+                    }
+                }
             }
         }
-
         TickDOF(DeltaTime, bIsInspecting);
     }
 
@@ -322,6 +318,32 @@ void UInteractionComponent::ExitPressedView()
 
     PressedActor = nullptr;
     bIsViewingPressed = false;
+
+    if (ACharacter* Char = Cast<ACharacter>(GetOwner()))
+        Char->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+}
+
+
+void UInteractionComponent::StoreHeldItem() 
+{
+    if (!bIsInspecting || !HeldActor) return;
+
+    if (AUnreal_Freds_EscapeCharacter* Char = Cast<AUnreal_Freds_EscapeCharacter>(GetOwner()))
+    {
+        if (UInventoryComponent* Inv = Char->GetInventoryComponent())
+        {
+            if (HeldActor->GetClass()->ImplementsInterface(UPickupable::StaticClass()))
+                ItemData = IPickupable::Execute_GetItemData(HeldActor);
+
+            Inv->TryAddItem(ItemData);
+        }
+    }
+
+    HeldActor->Destroy();
+    HeldActor = nullptr;
+    bIsInspecting = false;
+    bIsRotating = false;
+    OnItemStored.Broadcast();
 
     if (ACharacter* Char = Cast<ACharacter>(GetOwner()))
         Char->GetCharacterMovement()->SetMovementMode(MOVE_Walking);

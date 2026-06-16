@@ -9,6 +9,7 @@
 #include "InputActionValue.h"
 #include "InteractionSystem/InteractionComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "InventorySystem/InventoryComponent.h"
 #include "Unreal_Freds_Escape.h"
 
 AUnreal_Freds_EscapeCharacter::AUnreal_Freds_EscapeCharacter()
@@ -46,6 +47,7 @@ AUnreal_Freds_EscapeCharacter::AUnreal_Freds_EscapeCharacter()
 
 	// Create the interaction component
 	InteractionComponent = CreateDefaultSubobject<UInteractionComponent>(TEXT("Interaction Component"));
+	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory Component"));
 }
 
 void AUnreal_Freds_EscapeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -68,6 +70,9 @@ void AUnreal_Freds_EscapeCharacter::SetupPlayerInputComponent(UInputComponent* P
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, InteractionComponent, &UInteractionComponent::TryInteract);
 		EnhancedInputComponent->BindAction(InspectRotateAction, ETriggerEvent::Started, InteractionComponent, &UInteractionComponent::BeginRotate);
 		EnhancedInputComponent->BindAction(InspectRotateAction, ETriggerEvent::Completed, InteractionComponent, &UInteractionComponent::EndRotate);
+
+		// Store item
+		EnhancedInputComponent->BindAction(StoreItemAction, ETriggerEvent::Started, InteractionComponent, &UInteractionComponent::StoreHeldItem);
 	}
 	else
 	{
