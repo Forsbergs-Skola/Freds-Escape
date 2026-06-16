@@ -24,6 +24,11 @@ void UInteractionComponent::BeginPlay()
             CachedCameraManager = Cast<AUnreal_Freds_EscapeCameraManager>(OwnerController->PlayerCameraManager);
         }
     }
+
+    GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
+        {
+            bInputReady = true;
+        });
 }
 
 void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType,
@@ -100,6 +105,9 @@ void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void UInteractionComponent::TryInteract()
 {
+    if (!bInputReady) return;
+
+
     if (bIsInspecting)
     {
         // Drop item
@@ -137,6 +145,15 @@ void UInteractionComponent::TryInteract()
 
         if (OwnerController)
 			OriginalControlRotation = OwnerController->GetControlRotation();
+
+        if (OwnerController)
+        {
+            OwnerController->SetShowMouseCursor(true);
+            FInputModeGameAndUI InputMode;
+            InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+            InputMode.SetHideCursorDuringCapture(false);
+            OwnerController->SetInputMode(InputMode);
+        }
 
         if (ACharacter* Char = Cast<ACharacter>(GetOwner()))
 			Char->GetCharacterMovement()->DisableMovement();
@@ -204,7 +221,20 @@ void UInteractionComponent::TickPressedView(float DeltaTime)
 {
 	if (!OwnerController || !PressedActor) return;
 
-	//Smoothly rotate the controller to look at the pressed button focus point
+	// Check for left mouse click 
+    if (OwnerController->IsInputKeyDown(EKeys::LeftMouseButton))
+    {
+        if (!bWasMouseDownLastFrame)
+        {
+            TryPressingButton();
+        }
+        bWasMouseDownLastFrame = true;
+    }
+    else
+    {
+        bWasMouseDownLastFrame = false;
+    }
+
 	UCameraComponent* Cam = GetCamera();
 
     if (Cam)
@@ -271,6 +301,12 @@ void UInteractionComponent::ExitPressedView()
     if (OwnerController)
     {
         OwnerController->SetControlRotation(OriginalControlRotation);
+    }
+
+    if (OwnerController)
+    {
+        OwnerController->SetShowMouseCursor(false);
+        OwnerController->SetInputMode(FInputModeGameOnly());
     }
 
     //Blend DOF back out

@@ -2,6 +2,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "EnhancedInputComponent.h"
 #include "InteractionComponent.generated.h"
 
 
@@ -96,6 +97,8 @@ private:
 	APlayerController* OwnerController = nullptr;
 
 	bool bIsRotating = false;
+	bool bInputReady = false;
+	bool bWasMouseDownLastFrame = false;
 	FVector2D MouseDelta = FVector2D::ZeroVector;
 	FTransform OriginalTransform;
 	float DOFAlpha = 0.f;
