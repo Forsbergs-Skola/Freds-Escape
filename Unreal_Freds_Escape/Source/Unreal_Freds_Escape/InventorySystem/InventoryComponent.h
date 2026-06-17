@@ -17,17 +17,15 @@ struct FInventorySlot
 	UPROPERTY(BlueprintReadOnly, Category = "Inventory")
 	UInventoryItemData* ItemData = nullptr;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Inventory")
-	int32 Quantity = 0;
-
 	bool IsEmpty() const
 	{
-		return ItemData == nullptr || Quantity <= 0;
+		return ItemData == nullptr;
 	}
 };
 
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryChanged);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemUsed, UInventoryItemData*, ItemData);
 
 
 /**
@@ -47,11 +45,18 @@ public:
 
 	// Max number of slots
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
-	int32 MaxSlots = 20;
+	int32 MaxSlots = 4;
 
-	//Broadcast whenever the inventory changes and bind this in WBP_Inventory
+	// Broadcast whenever the inventory changes and bind this in WBP_Inventory
 	UPROPERTY(BlueprintAssignable, Category = "Inventory")
 	FOnInventoryChanged OnInventoryChanged;
+
+	UPROPERTY(BlueprintAssignable, Category = "Inventory")
+	FOnItemUsed OnItemUsed;
+
+	// Allow all item types to enter this inventory
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	TArray<UInventoryItemData*> AllowedItems;
 
 	// Returns the full slot array for UI binding
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inventory")
@@ -67,9 +72,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	bool TryAddItem(UInventoryItemData* ItemData);
 
-	// Remove one unit of ItemData
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	bool RemoveItem(UInventoryItemData* ItemData);
+	bool UseItem(UInventoryItemData* ItemData);
+
+	// Removes item from inventory
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	bool DropItem(UInventoryItemData* ItemData);
 
 	// Empty the entire inventory
 	UFUNCTION(BlueprintCallable, Category = "Inventory")

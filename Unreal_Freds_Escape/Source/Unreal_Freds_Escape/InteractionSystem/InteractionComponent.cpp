@@ -68,7 +68,7 @@ void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType,
             TArray<FHitResult> Hits;
             FocusedActor = nullptr;
 
-            if (GetWorld()->SweepMultiByChannel(Hits, Start, End, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeSphere(15.f), Params))
+            if (GetWorld()->SweepMultiByChannel(Hits, Start, End, FQuat::Identity, ECC_GameTraceChannel1, FCollisionShape::MakeSphere(15.f), Params))
             {
                 for (const FHitResult& Hit : Hits)
                 {
@@ -101,6 +101,8 @@ void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void UInteractionComponent::TryInteract()
 {
+    GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, TEXT("TryInteract called"));
+
     if (!bInputReady) return;
 
 
