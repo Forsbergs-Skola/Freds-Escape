@@ -1,85 +1,84 @@
+
 #include "InventorySystem/InventoryComponent.h"
 
 
 UInventoryComponent::UInventoryComponent()
 {
-	PrimaryComponentTick.bCanEverTick = false;
+    PrimaryComponentTick.bCanEverTick = false;
 }
 
 
 bool UInventoryComponent::HasRoom() const
 {
-	int32 Used = 0;
-
-	for (const FInventorySlot& Slot : Slots)
-		if(!Slot.IsEmpty()) ++Used;
-	return Used < MaxSlots;
+    return Slots.Num() < MaxSlots;
 }
 
 
 bool UInventoryComponent::HasItem(UInventoryItemData* ItemData) const
 {
-	if (!ItemData) return false; 
+    if (!ItemData) return false;
 
-	for (const FInventorySlot& Slot : Slots)
-		if (Slot.ItemData == ItemData && Slot.Quantity > 0) return true;
-	return false;
+    for (const FInventorySlot& Slot : Slots)
+        if (Slot.ItemData == ItemData) return true;
+    return false;
 }
 
 
 bool UInventoryComponent::TryAddItem(UInventoryItemData* ItemData)
 {
-	if (!ItemData) return false;
+    if (!ItemData) return false;
 
-	if (ItemData->bIsStackable)
-	{
-		for (FInventorySlot& Slot : Slots)
-		{
-			if (Slot.ItemData == ItemData && Slot.Quantity < ItemData->MaxStackSize)
-			{
-				++Slot.Quantity;
-				OnInventoryChanged.Broadcast();
-				return true;
-			}
-		}
-	}
+    if (AllowedItems.Num() > 0 && !AllowedItems.Contains(ItemData))
+        return false;
 
-	if (!HasRoom()) return false;
+    if (!HasRoom()) return false;
 
-	FInventorySlot NewSlot;
-	NewSlot.ItemData = ItemData;
-	NewSlot.Quantity = 1;
-	Slots.Add(NewSlot);
+    FInventorySlot NewSlot;
+    NewSlot.ItemData = ItemData;
+    Slots.Add(NewSlot);
 
-	OnInventoryChanged.Broadcast();
-	return true;
+    OnInventoryChanged.Broadcast();
+    return true;
 }
 
 
-bool UInventoryComponent::RemoveItem(UInventoryItemData* ItemData)
+bool UInventoryComponent::UseItem(UInventoryItemData* ItemData)
 {
-	if (!ItemData) return false;
+    if (!ItemData) return false;
 
-	for (int32 i = 0; i < Slots.Num(); ++i)
-	{
-		if (Slots[i].ItemData == ItemData)
-		{
-			--Slots[i].Quantity;
+    for (int32 i = 0; i < Slots.Num(); ++i)
+    {
+        if (Slots[i].ItemData == ItemData)
+        {
+            Slots.RemoveAt(i);
+            OnItemUsed.Broadcast(ItemData);
+            OnInventoryChanged.Broadcast();
+            return true;
+        }
+    }
+    return false;
+}
 
-			if (Slots[i].Quantity <= 0)
-				Slots.RemoveAt(i);
 
-			OnInventoryChanged.Broadcast();
-			return true;
-		}
-	}
+bool UInventoryComponent::DropItem(UInventoryItemData* ItemData)
+{
+    if (!ItemData) return false;
 
-	return false;
+    for (int32 i = 0; i < Slots.Num(); ++i)
+    {
+        if (Slots[i].ItemData == ItemData)
+        {
+            Slots.RemoveAt(i);
+            OnInventoryChanged.Broadcast();
+            return true;
+        }
+    }
+    return false;
 }
 
 
 void UInventoryComponent::Clear()
 {
-	Slots.Empty();
-	OnInventoryChanged.Broadcast();
+    Slots.Empty();
+    OnInventoryChanged.Broadcast();
 }

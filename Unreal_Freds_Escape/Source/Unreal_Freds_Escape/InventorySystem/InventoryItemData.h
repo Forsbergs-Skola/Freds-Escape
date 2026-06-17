@@ -31,13 +31,4 @@ public:
 	// Icon texture for the inventory grid slot
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
 	TSoftObjectPtr<UTexture2D> Icon;
-
-	// When true, multiple pickups of this item stack in one slot
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
-	bool bIsStackable = false;
-
-	// Max units per stack, only relevant when bIsStackable is true
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item",
-	meta = (EditCondition = "bIsStackable", ClampMin = "1"))
-	int32 MaxStackSize = 1;
 };
