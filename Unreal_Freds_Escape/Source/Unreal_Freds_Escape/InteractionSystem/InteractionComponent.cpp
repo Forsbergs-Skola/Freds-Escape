@@ -101,14 +101,11 @@ void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void UInteractionComponent::TryInteract()
 {
-    GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, TEXT("TryInteract called"));
-
     if (!bInputReady) return;
 
-
+    // Drop held item
     if (bIsInspecting)
     {
-        // Drop item
         if (UPrimitiveComponent* Prim = Cast<UPrimitiveComponent>(HeldActor->GetRootComponent()))
         {
             Prim->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
@@ -117,33 +114,28 @@ void UInteractionComponent::TryInteract()
         HeldActor = nullptr;
         bIsInspecting = false;
         bIsRotating = false;
-
         if (ACharacter* Char = Cast<ACharacter>(GetOwner()))
             Char->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
         return;
     }
 
+    // Exit pressed view
     if (bIsViewingPressed)
     {
-        // Stop viewing pressed buttons
-		ExitPressedView();
+        ExitPressedView();
         return;
     }
 
     if (!FocusedActor) return;
 
-    // Check keypad interface first
+    // Sub-interface: pressed interactable (keypad, buttons)
     if (FocusedActor->GetClass()->ImplementsInterface(UPressedInteractable::StaticClass()))
     {
-		PressedActor = FocusedActor;
-		bIsViewingPressed = true;
-
-		// Ask the BP actor where the camera should move to focus on the buttons
-		PressedFocusWorldLocation = IPressedInteractable::Execute_OnPressedFocus(PressedActor, OwnerController);
-
+        PressedActor = FocusedActor;
+        bIsViewingPressed = true;
+        PressedFocusWorldLocation = IPressedInteractable::Execute_OnPressedFocus(PressedActor, OwnerController);
         if (OwnerController)
-			OriginalControlRotation = OwnerController->GetControlRotation();
-
+            OriginalControlRotation = OwnerController->GetControlRotation();
         if (OwnerController)
         {
             OwnerController->SetShowMouseCursor(true);
@@ -152,29 +144,35 @@ void UInteractionComponent::TryInteract()
             InputMode.SetHideCursorDuringCapture(false);
             OwnerController->SetInputMode(InputMode);
         }
-
-        if (ACharacter* Char = Cast<ACharacter>(GetOwner()))
-			Char->GetCharacterMovement()->DisableMovement();
-
-		return;
-    }
-
-    bool bAccepted = IInteractable::Execute_OnInteract(FocusedActor, OwnerController);
-    if (bAccepted)
-    {
-        HeldActor = FocusedActor;
-        bIsInspecting = true;
-        OriginalTransform = HeldActor->GetActorTransform();
-
-        if (UPrimitiveComponent* Prim = Cast<UPrimitiveComponent>(HeldActor->GetRootComponent()))
-        {
-            Prim->SetSimulatePhysics(false);
-            Prim->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-        }
         if (ACharacter* Char = Cast<ACharacter>(GetOwner()))
             Char->GetCharacterMovement()->DisableMovement();
+        return;
     }
+
+    // Sub-interface: pickupable item
+    if (FocusedActor->GetClass()->ImplementsInterface(UPickupable::StaticClass()))
+    {
+        bool bAccepted = IPickupable::Execute_OnPickup(FocusedActor, OwnerController);
+        if (bAccepted)
+        {
+            HeldActor = FocusedActor;
+            bIsInspecting = true;
+            OriginalTransform = HeldActor->GetActorTransform();
+            if (UPrimitiveComponent* Prim = Cast<UPrimitiveComponent>(HeldActor->GetRootComponent()))
+            {
+                Prim->SetSimulatePhysics(false);
+                Prim->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+            }
+            if (ACharacter* Char = Cast<ACharacter>(GetOwner()))
+                Char->GetCharacterMovement()->DisableMovement();
+        }
+        return;
+    }
+
+    // Base interface only (door, lever, etc.) — fire and forget
+    IInteractable::Execute_OnInteract(FocusedActor, OwnerController);
 }
+
 
 void UInteractionComponent::TickRotation(float DeltaTime)
 {
@@ -186,6 +184,7 @@ void UInteractionComponent::TickRotation(float DeltaTime)
     FQuat Pitch = FQuat(Cam->GetRightVector(), FMath::DegreesToRadians(-MouseDelta.Y * RotationSpeed * DeltaTime));
     HeldActor->SetActorRotation(Pitch * Yaw * HeldActor->GetActorQuat(), ETeleportType::TeleportPhysics);
 }
+
 
 void UInteractionComponent::TickDOF(float DeltaTime, bool bEnable)
 {
@@ -199,6 +198,7 @@ void UInteractionComponent::TickDOF(float DeltaTime, bool bEnable)
     Cam->PostProcessSettings.DepthOfFieldFocalDistance = FMath::Lerp(DefaultFocalDistance, InspectFocalDistance, DOFAlpha);
     Cam->PostProcessSettings.DepthOfFieldFstop = FMath::Lerp(DefaultAperture, InspectAperture, DOFAlpha);
 }
+
 
 void UInteractionComponent::BeginRotate() { if (bIsInspecting) bIsRotating = true; }
 void UInteractionComponent::EndRotate() { bIsRotating = false; }

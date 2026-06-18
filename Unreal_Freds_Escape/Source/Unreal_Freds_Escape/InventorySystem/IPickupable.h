@@ -31,4 +31,8 @@ public:
 	UFUNCTION(BlueprintNativeEvent, Category = "Interaction|Inventory")
 	UInventoryItemData* GetItemData();
 	virtual UInventoryItemData* GetItemData_Implementation() { return nullptr; }
+
+	UFUNCTION(BlueprintNativeEvent, Category = "Interaction|Inventory")
+	bool OnPickup(APlayerController* Player);
+	virtual bool OnPickup_Implementation(APlayerController* Player) { return true;  }
 };

@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "EnhancedInputComponent.h"
+#include "InteractionSystem/IInteractable.h"
 #include "InventorySystem/IPickupable.h"
 #include "InventorySystem/InventoryComponent.h"
 #include "InteractionComponent.generated.h"
