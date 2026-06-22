@@ -1,29 +1,33 @@
 #include "KeypadPuzzle.h"
-#include "KeypadButton.h"
 #include "Engine/Engine.h"
+#include "Components/PrimitiveComponent.h"
 
 AKeypadPuzzle::AKeypadPuzzle()
 {
     // Initialize properties if needed
 }
 
-void AKeypadPuzzle::BeginPlay()
+FVector AKeypadPuzzle::OnPressedFocus_Implementation(APlayerController* Player)
 {
-    Super::BeginPlay();
-
-    // Bind to all the physical buttons assigned to this puzzle
-    for (AKeypadButton* Button : KeypadButtons)
-    {
-        if (Button)
-        {
-            Button->OnButtonPressed.AddDynamic(this, &AKeypadPuzzle::HandleButtonPressed);
-        }
-    }
+    // Return a location slightly in front of the keypad so the camera zooms in
+    return GetActorLocation() + (GetActorForwardVector() * 50.f);
 }
 
-void AKeypadPuzzle::HandleButtonPressed(int32 Digit)
+void AKeypadPuzzle::OnButtonPressed_Implementation(APlayerController* Player, UPrimitiveComponent* HitComponent)
 {
-    EnterDigit(Digit);
+    if (!HitComponent) return;
+
+    if (HitComponent->ComponentTags.Contains(FName("Digit_1"))) EnterDigit(1);
+    else if (HitComponent->ComponentTags.Contains(FName("Digit_2"))) EnterDigit(2);
+    else if (HitComponent->ComponentTags.Contains(FName("Digit_3"))) EnterDigit(3);
+    else if (HitComponent->ComponentTags.Contains(FName("Digit_4"))) EnterDigit(4);
+    else if (HitComponent->ComponentTags.Contains(FName("Digit_5"))) EnterDigit(5);
+    else if (HitComponent->ComponentTags.Contains(FName("Digit_6"))) EnterDigit(6);
+    else if (HitComponent->ComponentTags.Contains(FName("Digit_7"))) EnterDigit(7);
+    else if (HitComponent->ComponentTags.Contains(FName("Digit_8"))) EnterDigit(8);
+    else if (HitComponent->ComponentTags.Contains(FName("Digit_9"))) EnterDigit(9);
+    else if (HitComponent->ComponentTags.Contains(FName("Digit_0"))) EnterDigit(0);
+    else if (HitComponent->ComponentTags.Contains(FName("Clear"))) ClearInput();
 }
 
 void AKeypadPuzzle::EnterDigit(int32 Digit)

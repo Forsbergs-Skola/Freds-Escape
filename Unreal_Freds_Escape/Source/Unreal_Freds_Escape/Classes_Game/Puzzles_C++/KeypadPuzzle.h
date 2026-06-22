@@ -2,13 +2,14 @@
 
 #include "CoreMinimal.h"
 #include "PuzzleBase.h"
+#include "InteractionSystem/IPressedInteractable.h"
 #include "KeypadPuzzle.generated.h"
 
 /**
  * The manager for a keypad or code lock puzzle.
  */
 UCLASS()
-class UNREAL_FREDS_ESCAPE_API AKeypadPuzzle : public APuzzleBase
+class UNREAL_FREDS_ESCAPE_API AKeypadPuzzle : public APuzzleBase, public IPressedInteractable
 {
     GENERATED_BODY()
 
@@ -35,15 +36,8 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Puzzle")
     void ClearInput();
 
-    // The physical buttons that make up this keypad
-    UPROPERTY(EditInstanceOnly, Category = "Puzzle")
-    TArray<class AKeypadButton*> KeypadButtons;
-
-protected:
-    virtual void BeginPlay() override;
-
-private:
-    // Bound to the buttons' OnButtonPressed delegate
-    UFUNCTION()
-    void HandleButtonPressed(int32 Digit);
+public:
+    // IPressedInteractable Interface overrides
+    virtual FVector OnPressedFocus_Implementation(APlayerController* Player) override;
+    virtual void OnButtonPressed_Implementation(APlayerController* Player, UPrimitiveComponent* HitComponent) override;
 };
