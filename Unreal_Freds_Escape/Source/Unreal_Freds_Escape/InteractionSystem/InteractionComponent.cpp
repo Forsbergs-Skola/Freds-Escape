@@ -1,4 +1,4 @@
-#include "InteractionComponent.h"
+ï»¿#include "InteractionComponent.h"
 #include "Unreal_Freds_EscapeCameraManager.h"
 #include "Unreal_Freds_EscapeCharacter.h"
 #include "IInteractable.h"
@@ -169,7 +169,7 @@ void UInteractionComponent::TryInteract()
         return;
     }
 
-    // Base interface only (door, lever, etc.) — fire and forget
+    // Base interface only (door, lever, etc.) ï¿½ fire and forget
     IInteractable::Execute_OnInteract(FocusedActor, OwnerController);
 }
 
@@ -265,11 +265,11 @@ void UInteractionComponent::TryPressingButton()
 {
 	if (!bIsViewingPressed || !OwnerController) return;
 
-    // Raycast from screen centre into the keypad actor's geometry
-    FVector Start;
-    FRotator Rotation;
-	OwnerController->GetPlayerViewPoint(Start, Rotation);
-    FVector End = Start + Rotation.Vector() * InteractionRange;
+    // Raycast from mouse cursor into the keypad actor's geometry
+    FVector Start, WorldDirection;
+    if (!OwnerController->DeprojectMousePositionToWorld(Start, WorldDirection)) return;
+
+    FVector End = Start + (WorldDirection * InteractionRange);
 
     FHitResult Hit;
     FCollisionQueryParams Params;

@@ -17,6 +17,26 @@ void AKeypadPuzzle::OnButtonPressed_Implementation(APlayerController* Player, UP
 {
     if (!HitComponent) return;
 
+    // DEBUG: Print what we hit and what its tags are!
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 4.f, FColor::Cyan, FString::Printf(TEXT("Hit Component: %s"), *HitComponent->GetName()));
+        
+        if (HitComponent->ComponentTags.Num() > 0)
+        {
+            FString TagsStr = "";
+            for (FName Tag : HitComponent->ComponentTags)
+            {
+                TagsStr += Tag.ToString() + " ";
+            }
+            GEngine->AddOnScreenDebugMessage(-1, 4.f, FColor::Cyan, FString::Printf(TEXT("Tags found: %s"), *TagsStr));
+        }
+        else
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 4.f, FColor::Red, TEXT("WARNING: No Component Tags found on this mesh!"));
+        }
+    }
+
     if (HitComponent->ComponentTags.Contains(FName("Digit_1"))) EnterDigit(1);
     else if (HitComponent->ComponentTags.Contains(FName("Digit_2"))) EnterDigit(2);
     else if (HitComponent->ComponentTags.Contains(FName("Digit_3"))) EnterDigit(3);
@@ -36,6 +56,13 @@ void AKeypadPuzzle::EnterDigit(int32 Digit)
     if (GetState() == EPuzzleState::Solved)
     {
         return;
+    }
+
+    if (GEngine)
+    {
+        FString Msg = FString::Printf(TEXT("Pressed Digit: %d"), Digit);
+        // Print in yellow so you can see each keypress
+        GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, Msg);
     }
 
     CurrentInput.Add(Digit);
@@ -78,5 +105,9 @@ void AKeypadPuzzle::CheckCode()
 
 void AKeypadPuzzle::ClearInput()
 {
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Orange, TEXT("Keypad Cleared!"));
+    }
     CurrentInput.Empty();
 }
