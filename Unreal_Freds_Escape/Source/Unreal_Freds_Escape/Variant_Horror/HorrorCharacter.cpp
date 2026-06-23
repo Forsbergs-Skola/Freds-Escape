@@ -1,4 +1,3 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
 
 
 #include "Variant_Horror/HorrorCharacter.h"
@@ -28,13 +27,13 @@ void AHorrorCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// initialize sprint meter to max
+	// Initialize sprint meter to max
 	SprintMeter = SprintTime;
 
 	// Initialize the walk speed
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 
-	// start the sprint tick timer
+	// Start the sprint tick timer
 	GetWorld()->GetTimerManager().SetTimer(SprintTimer, this, &AHorrorCharacter::SprintFixedTick, SprintFixedTickTime, true);
 }
 
@@ -42,7 +41,7 @@ void AHorrorCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 
-	// clear the sprint timer
+	// Clear the sprint timer
 	GetWorld()->GetTimerManager().ClearTimer(SprintTimer);
 }
 
@@ -50,30 +49,38 @@ void AHorrorCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	UE_LOG(LogTemp, Warning, TEXT("HorrorCharacter SetupPlayerInputComponent called"));
+
+	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		// Set up action bindings
-		if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+		UE_LOG(LogTemp, Warning, TEXT("EnhancedInputComponent cast succeeded"));
+
+		if (SprintAction)
 		{
-			// Sprinting
+			UE_LOG(LogTemp, Warning, TEXT("SprintAction is valid: %s"), *SprintAction->GetName());
 			EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &AHorrorCharacter::DoStartSprint);
 			EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AHorrorCharacter::DoEndSprint);
-
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("SprintAction is NULL"));
 		}
 	}
 }
 
 void AHorrorCharacter::DoStartSprint()
 {
-	// set the sprinting flag
+	UE_LOG(LogTemp, Warning, TEXT("DoStartSprint called"));
+	// Set the sprinting flag
 	bSprinting = true;
 
-	// are we out of recovery mode?
+	// Are we out of recovery mode?
 	if (!bRecovering)
 	{
-		// set the sprint walk speed
+		// Set the sprint walk speed
 		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
 
-		// call the sprint state changed delegate
+		// Call the sprint state changed delegate
 		OnSprintStateChanged.Broadcast(true);
 	}
 
@@ -81,63 +88,51 @@ void AHorrorCharacter::DoStartSprint()
 
 void AHorrorCharacter::DoEndSprint()
 {
-	// set the sprinting flag
+	UE_LOG(LogTemp, Warning, TEXT("DoEndSprint called"));
+
+	// Set the sprinting flag
 	bSprinting = false;
 
-	// are we out of recovery mode?
+	// Are we out of recovery mode?
 	if (!bRecovering)
 	{
-		// set the default walk speed
+		// Set the default walk speed
 		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 
-		// call the sprint state changed delegate
+		// Call the sprint state changed delegate
 		OnSprintStateChanged.Broadcast(false);
 	}
 }
 
 void AHorrorCharacter::SprintFixedTick()
 {
-	// are we out of recovery, still have stamina and are moving faster than our walk speed?
-	if (bSprinting && !bRecovering && GetVelocity().Length() > WalkSpeed)
+	if (bSprinting && !bRecovering)
 	{
-
-		// do we still have meter to burn?
+		// Drain stamina whenever sprint is held (not gated by velocity
 		if (SprintMeter > 0.0f)
 		{
-			// update the sprint meter
 			SprintMeter = FMath::Max(SprintMeter - SprintFixedTickTime, 0.0f);
 
-			// have we run out of stamina?
 			if (SprintMeter <= 0.0f)
 			{
-				// raise the recovering flag
 				bRecovering = true;
-
-				// set the recovering walk speed
 				GetCharacterMovement()->MaxWalkSpeed = RecoveringWalkSpeed;
+				OnSprintStateChanged.Broadcast(false);
 			}
 		}
-		
-	} else {
-
-		// recover stamina
+	}
+	else
+	{
+		// Recover stamina when not sprinting or when recovering
 		SprintMeter = FMath::Min(SprintMeter + SprintFixedTickTime, SprintTime);
 
-		if (SprintMeter >= SprintTime)
+		if (bRecovering && SprintMeter >= SprintTime)
 		{
-			// lower the recovering flag
 			bRecovering = false;
-
-			// set the walk or sprint speed depending on whether the sprint button is down
 			GetCharacterMovement()->MaxWalkSpeed = bSprinting ? SprintSpeed : WalkSpeed;
-
-			// update the sprint state depending on whether the button is down or not
 			OnSprintStateChanged.Broadcast(bSprinting);
 		}
-
 	}
 
-	// broadcast the sprint meter updated delegate
 	OnSprintMeterUpdated.Broadcast(SprintMeter / SprintTime);
-
 }

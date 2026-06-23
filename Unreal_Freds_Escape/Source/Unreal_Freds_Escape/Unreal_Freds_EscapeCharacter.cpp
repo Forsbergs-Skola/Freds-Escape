@@ -52,6 +52,9 @@ AUnreal_Freds_EscapeCharacter::AUnreal_Freds_EscapeCharacter()
 
 void AUnreal_Freds_EscapeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {	
+	UE_LOG(LogTemp, Warning, TEXT("Parent SetupPlayerInputComponent called"));
+	UE_LOG(LogTemp, Warning, TEXT("JumpAction is: %s"), JumpAction ? *JumpAction->GetName() : TEXT("NULL"));
+
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
@@ -128,6 +131,7 @@ void AUnreal_Freds_EscapeCharacter::DoMove(float Right, float Forward)
 
 void AUnreal_Freds_EscapeCharacter::DoJumpStart()
 {
+	UE_LOG(LogTemp, Warning, TEXT("DoJumpStart called"));
 	// pass Jump to the character
 	Jump();
 }
