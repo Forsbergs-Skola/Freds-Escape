@@ -14,15 +14,15 @@ class UHorrorUI;
  *  Manages input mappings
  *  Manages UI
  */
-UCLASS(abstract, config="Game")
+UCLASS(abstract, config = "Game")
 class UNREAL_FREDS_ESCAPE_API AHorrorPlayerController : public APlayerController
 {
 	GENERATED_BODY()
-	
+
 protected:
 
 	/** Type of UI widget to spawn */
-	UPROPERTY(EditAnywhere, Category="Horror|UI")
+	UPROPERTY(EditAnywhere, Category = "Horror|UI")
 	TSubclassOf<UHorrorUI> HorrorUIClass;
 
 	/** Pointer to the UI widget */
@@ -37,15 +37,15 @@ public:
 protected:
 
 	/** Input Mapping Contexts */
-	UPROPERTY(EditAnywhere, Category ="Input|Input Mappings")
+	UPROPERTY(EditAnywhere, Category = "Input|Input Mappings")
 	TArray<UInputMappingContext*> DefaultMappingContexts;
 
 	/** Input Mapping Contexts */
-	UPROPERTY(EditAnywhere, Category="Input|Input Mappings")
+	UPROPERTY(EditAnywhere, Category = "Input|Input Mappings")
 	TArray<UInputMappingContext*> MobileExcludedMappingContexts;
 
 	/** Mobile controls widget to spawn */
-	UPROPERTY(EditAnywhere, Category="Input|Touch Controls")
+	UPROPERTY(EditAnywhere, Category = "Input|Touch Controls")
 	TSubclassOf<UUserWidget> MobileControlsWidgetClass;
 
 	/** Pointer to the mobile controls widget */

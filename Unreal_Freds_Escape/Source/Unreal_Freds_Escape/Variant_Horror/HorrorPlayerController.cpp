@@ -13,7 +13,7 @@
 
 AHorrorPlayerController::AHorrorPlayerController()
 {
-	// set the player camera manager class
+	// Set the player camera manager class
 	PlayerCameraManagerClass = AUnreal_Freds_EscapeCameraManager::StaticClass();
 }
 
@@ -21,18 +21,19 @@ void AHorrorPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// only spawn touch controls on local player controllers
+	// Only spawn touch controls on local player controllers
 	if (ShouldUseTouchControls() && IsLocalPlayerController())
 	{
-		// spawn the mobile controls widget
+		// Spawn the mobile controls widget
 		MobileControlsWidget = CreateWidget<UUserWidget>(this, MobileControlsWidgetClass);
 
 		if (MobileControlsWidget)
 		{
-			// add the controls to the player screen
+			// Add the controls to the player screen
 			MobileControlsWidget->AddToPlayerScreen(0);
 
-		} else {
+		}
+		else {
 
 			UE_LOG(LogUnreal_Freds_Escape, Error, TEXT("Could not spawn mobile controls widget."));
 
@@ -45,30 +46,38 @@ void AHorrorPlayerController::OnPossess(APawn* aPawn)
 {
 	Super::OnPossess(aPawn);
 
-	// only spawn UI on local player controllers
+	// Only spawn UI on local player controllers
 	if (IsLocalPlayerController())
 	{
-		// set up the UI for the character
+		// Set up the UI for the character
 		if (AHorrorCharacter* HorrorCharacter = Cast<AHorrorCharacter>(aPawn))
 		{
-			// create the UI
-			if (!HorrorUI)
+			if (HorrorUIClass)
 			{
-				HorrorUI = CreateWidget<UHorrorUI>(this, HorrorUIClass);
-				HorrorUI->AddToViewport(0);
-			}
+				if (!HorrorUI)
+				{
+					HorrorUI = CreateWidget<UHorrorUI>(this, HorrorUIClass);
 
-			HorrorUI->SetupCharacter(HorrorCharacter);
+					if (HorrorUI)
+					{
+						HorrorUI->AddToViewport(0);
+					}
+				}
+
+				if (HorrorUI)
+				{
+					HorrorUI->SetupCharacter(HorrorCharacter);
+				}
+			}			
 		}
 	}
-	
 }
 
 void AHorrorPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
-	
-	// only add IMCs for local player controllers
+
+	// Only add IMCs for local player controllers
 	if (IsLocalPlayerController())
 	{
 		// Add Input Mapping Contexts
@@ -79,7 +88,7 @@ void AHorrorPlayerController::SetupInputComponent()
 				Subsystem->AddMappingContext(CurrentContext, 0);
 			}
 
-			// only add these IMCs if we're not using mobile touch input
+			// Only add these IMCs if we're not using mobile touch input
 			if (!ShouldUseTouchControls())
 			{
 				for (UInputMappingContext* CurrentContext : MobileExcludedMappingContexts)
@@ -88,11 +97,11 @@ void AHorrorPlayerController::SetupInputComponent()
 				}
 			}
 		}
-	}	
+	}
 }
 
 bool AHorrorPlayerController::ShouldUseTouchControls() const
 {
-	// are we on a mobile platform? Should we force touch?
+	// Are we on a mobile platform? Should we force touch?
 	return SVirtualJoystick::ShouldDisplayTouchInterface() || bForceTouchControls;
 }
