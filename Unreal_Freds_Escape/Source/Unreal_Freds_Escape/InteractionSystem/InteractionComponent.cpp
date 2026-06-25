@@ -1,4 +1,4 @@
-﻿#include "InteractionComponent.h"
+#include "InteractionComponent.h"
 #include "Unreal_Freds_EscapeCameraManager.h"
 #include "Unreal_Freds_EscapeCharacter.h"
 #include "IInteractable.h"
@@ -110,7 +110,7 @@ void UInteractionComponent::TryInteract()
         {
             Prim->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
         }
-        HeldActor->SetActorTransform(OriginalTransform);
+        HeldActor->SetActorLocation(OriginalTransform.GetLocation());
         HeldActor = nullptr;
         bIsInspecting = false;
         bIsRotating = false;
