@@ -111,6 +111,10 @@ void UInteractionComponent::TryInteract()
             Prim->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
         }
         HeldActor->SetActorLocation(OriginalTransform.GetLocation());
+        if (HeldActor->GetClass()->ImplementsInterface(UPickupable::StaticClass()))
+        {
+            IPickupable::Execute_OnDrop(HeldActor, OwnerController);
+        }
         HeldActor = nullptr;
         bIsInspecting = false;
         bIsRotating = false;
