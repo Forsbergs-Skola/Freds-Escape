@@ -35,4 +35,8 @@ public:
 	UFUNCTION(BlueprintNativeEvent, Category = "Interaction|Inventory")
 	bool OnPickup(APlayerController* Player);
 	virtual bool OnPickup_Implementation(APlayerController* Player) { return true;  }
+
+	UFUNCTION(BlueprintNativeEvent, Category = "Interaction|Inventory")
+	void OnDrop(APlayerController* Player);
+	virtual void OnDrop_Implementation(APlayerController* Player) {}
 };
