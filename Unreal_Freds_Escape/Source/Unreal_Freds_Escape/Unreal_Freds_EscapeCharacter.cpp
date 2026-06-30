@@ -131,7 +131,7 @@ void AUnreal_Freds_EscapeCharacter::DoMove(float Right, float Forward)
 
 void AUnreal_Freds_EscapeCharacter::DoJumpStart()
 {
-	UE_LOG(LogTemp, Warning, TEXT("DoJumpStart called"));
+	UE_LOG(LogTemp, Warning, TEXT("[Horror Input] Jump Pressed! DoJumpStart called"));
 	// pass Jump to the character
 	Jump();
 }

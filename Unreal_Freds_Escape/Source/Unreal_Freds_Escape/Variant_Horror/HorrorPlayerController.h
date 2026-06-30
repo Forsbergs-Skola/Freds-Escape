@@ -4,10 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "UI/HorrorUI.h"
 #include "HorrorPlayerController.generated.h"
 
 class UInputMappingContext;
-class UHorrorUI;
 
 /**
  *  Player Controller for a first person horror game

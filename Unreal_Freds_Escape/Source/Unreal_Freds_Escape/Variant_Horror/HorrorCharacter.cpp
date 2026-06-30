@@ -27,22 +27,13 @@ void AHorrorCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Initialize sprint meter to max
-	SprintMeter = SprintTime;
-
 	// Initialize the walk speed
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-
-	// Start the sprint tick timer
-	GetWorld()->GetTimerManager().SetTimer(SprintTimer, this, &AHorrorCharacter::SprintFixedTick, SprintFixedTickTime, true);
 }
 
 void AHorrorCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
-
-	// Clear the sprint timer
-	GetWorld()->GetTimerManager().ClearTimer(SprintTimer);
 }
 
 void AHorrorCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -70,69 +61,28 @@ void AHorrorCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void AHorrorCharacter::DoStartSprint()
 {
-	UE_LOG(LogTemp, Warning, TEXT("DoStartSprint called"));
+	UE_LOG(LogTemp, Warning, TEXT("[Horror Input] Sprint Pressed! DoStartSprint called"));
+	
 	// Set the sprinting flag
 	bSprinting = true;
 
-	// Are we out of recovery mode?
-	if (!bRecovering)
-	{
-		// Set the sprint walk speed
-		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+	// Set the sprint walk speed
+	GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
 
-		// Call the sprint state changed delegate
-		OnSprintStateChanged.Broadcast(true);
-	}
-
+	// Call the sprint state changed delegate (for crosshair or other UI)
+	OnSprintStateChanged.Broadcast(true);
 }
 
 void AHorrorCharacter::DoEndSprint()
 {
-	UE_LOG(LogTemp, Warning, TEXT("DoEndSprint called"));
+	UE_LOG(LogTemp, Warning, TEXT("[Horror Input] Sprint Released! DoEndSprint called"));
 
 	// Set the sprinting flag
 	bSprinting = false;
 
-	// Are we out of recovery mode?
-	if (!bRecovering)
-	{
-		// Set the default walk speed
-		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	// Set the default walk speed
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 
-		// Call the sprint state changed delegate
-		OnSprintStateChanged.Broadcast(false);
-	}
-}
-
-void AHorrorCharacter::SprintFixedTick()
-{
-	if (bSprinting && !bRecovering)
-	{
-		// Drain stamina whenever sprint is held (not gated by velocity
-		if (SprintMeter > 0.0f)
-		{
-			SprintMeter = FMath::Max(SprintMeter - SprintFixedTickTime, 0.0f);
-
-			if (SprintMeter <= 0.0f)
-			{
-				bRecovering = true;
-				GetCharacterMovement()->MaxWalkSpeed = RecoveringWalkSpeed;
-				OnSprintStateChanged.Broadcast(false);
-			}
-		}
-	}
-	else
-	{
-		// Recover stamina when not sprinting or when recovering
-		SprintMeter = FMath::Min(SprintMeter + SprintFixedTickTime, SprintTime);
-
-		if (bRecovering && SprintMeter >= SprintTime)
-		{
-			bRecovering = false;
-			GetCharacterMovement()->MaxWalkSpeed = bSprinting ? SprintSpeed : WalkSpeed;
-			OnSprintStateChanged.Broadcast(bSprinting);
-		}
-	}
-
-	OnSprintMeterUpdated.Broadcast(SprintMeter / SprintTime);
+	// Call the sprint state changed delegate
+	OnSprintStateChanged.Broadcast(false);
 }

@@ -10,6 +10,7 @@
 #include "HorrorUI.h"
 #include "Unreal_Freds_Escape.h"
 #include "Widgets/Input/SVirtualJoystick.h"
+#include "Blueprint/UserWidget.h"
 
 AHorrorPlayerController::AHorrorPlayerController()
 {

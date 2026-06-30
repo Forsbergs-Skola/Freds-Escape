@@ -6,8 +6,7 @@
 
 void UHorrorUI::SetupCharacter(AHorrorCharacter* HorrorCharacter)
 {
-	HorrorCharacter->OnSprintMeterUpdated.AddDynamic(this, &UHorrorUI::OnSprintMeterUpdated);
-	HorrorCharacter->OnSprintStateChanged.AddDynamic(this, &UHorrorUI::OnSprintStateChanged);
+	// Delegates removed for unlimited sprint
 }
 
 void UHorrorUI::OnSprintMeterUpdated(float Percent)
