@@ -330,9 +330,11 @@ void UInteractionComponent::ExitPressedView()
 }
 
 
-void UInteractionComponent::StoreHeldItem() 
+void UInteractionComponent::StoreHeldItem()
 {
     if (!bIsInspecting || !HeldActor) return;
+
+    bool bStored = false;
 
     if (AUnreal_Freds_EscapeCharacter* Char = Cast<AUnreal_Freds_EscapeCharacter>(GetOwner()))
     {
@@ -341,8 +343,14 @@ void UInteractionComponent::StoreHeldItem()
             if (HeldActor->GetClass()->ImplementsInterface(UPickupable::StaticClass()))
                 ItemData = IPickupable::Execute_GetItemData(HeldActor);
 
-            Inv->TryAddItem(ItemData);
+            bStored = Inv->TryAddItem(ItemData);
         }
+    }
+
+    if (!bStored)
+    {
+        // Inventory full (or no inventory component) — keep the item in the world.
+        return;
     }
 
     HeldActor->Destroy();
