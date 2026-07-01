@@ -38,6 +38,7 @@ void APuzzleBase::SetState(EPuzzleState newState) //Checks states and changes st
     if (currentState == EPuzzleState::Solved)
     {
         OnSolved();
+        OnPuzzleSolvedDelegate.Broadcast();
         
         // Turn on all the connected puzzles in our list, this is how we will turn on the next puzzle
         for (APuzzleBase* dependent : dependents)
@@ -52,6 +53,7 @@ void APuzzleBase::SetState(EPuzzleState newState) //Checks states and changes st
     else if (currentState == EPuzzleState::Failed)
     {
         OnFailed();
+        OnPuzzleFailedDelegate.Broadcast();
         
         if (resetOnFailure)
         {
