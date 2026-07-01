@@ -35,12 +35,12 @@ void ARotationPuzzle::CheckSolution()
         // Check if the state changed to correct
         if (bIsCurrentlyCorrect && !req.bWasCorrect)
         {
-            req.targetActor->OnCorrectRotation();
+            req.targetActor->OnCorrectRotation.Broadcast();
         }
         // Check if the state changed to incorrect
         else if (!bIsCurrentlyCorrect && req.bWasCorrect)
         {
-            req.targetActor->OnIncorrectRotation();
+            req.targetActor->OnIncorrectRotation.Broadcast();
         }
 
         // Update the tracked state

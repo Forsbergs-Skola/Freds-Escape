@@ -6,6 +6,9 @@
 
 class ARotationPuzzle;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCorrectRotationSignature);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnIncorrectRotationSignature);
+
 // The Toy that the player can spin
 UCLASS()
 class UNREAL_FREDS_ESCAPE_API ARotatableActor : public AActor
@@ -27,13 +30,13 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Puzzle")
     int32 FrameNumber;
 
-    // Event fired in Blueprints when this specific toy reaches its correct rotation
-    UFUNCTION(BlueprintImplementableEvent, Category = "Puzzle")
-    void OnCorrectRotation();
+    // Event dispatcher whoch can be fired in Blueprints when this specific toy reaches its correct rotation
+    UPROPERTY(BlueprintAssignable, Category = "Puzzle")
+    FOnCorrectRotationSignature OnCorrectRotation;
 
-    // Event fired in Blueprints when this specific toy is rotated away from its correct rotation
-    UFUNCTION(BlueprintImplementableEvent, Category = "Puzzle")
-    void OnIncorrectRotation();
+    // Event dispatcher fired in Blueprints when this specific toy is rotated away from its correct rotation
+    UPROPERTY(BlueprintAssignable, Category = "Puzzle")
+    FOnIncorrectRotationSignature OnIncorrectRotation;
 
 protected:
     virtual void BeginPlay() override;
