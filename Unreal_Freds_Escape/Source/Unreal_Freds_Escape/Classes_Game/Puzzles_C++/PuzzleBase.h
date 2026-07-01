@@ -4,6 +4,9 @@
 #include "GameFramework/Actor.h"
 #include "PuzzleBase.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPuzzleSolved);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPuzzleFailed);
+
 // The different states a puzzle can be in
 UENUM(BlueprintType)
 enum class EPuzzleState : uint8
@@ -30,6 +33,12 @@ public:
     // Should this puzzle go back to active if the player fails
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Puzzle")
     bool resetOnFailure;
+
+    UPROPERTY(BlueprintAssignable, Category = "Puzzle")
+    FOnPuzzleSolved OnPuzzleSolvedDelegate;
+
+    UPROPERTY(BlueprintAssignable, Category = "Puzzle")
+    FOnPuzzleFailed OnPuzzleFailedDelegate;
 
     // Turns the puzzle on
     UFUNCTION(BlueprintCallable, Category = "Puzzle")

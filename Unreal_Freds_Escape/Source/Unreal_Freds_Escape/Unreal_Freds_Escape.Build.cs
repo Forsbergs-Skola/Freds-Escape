@@ -24,8 +24,10 @@ public class Unreal_Freds_Escape : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[] { });
 
 		PublicIncludePaths.AddRange(new string[] {
-			"Unreal_Freds_Escape",
-			"Unreal_Freds_Escape/Variant_Horror",
+            ModuleDirectory,
+            "Unreal_Freds_Escape",
+            "Unreal_Freds_Escape/Classes_Game",
+            "Unreal_Freds_Escape/Variant_Horror",
 			"Unreal_Freds_Escape/Variant_Horror/UI",
 			"Unreal_Freds_Escape/Variant_Shooter",
 			"Unreal_Freds_Escape/Variant_Shooter/AI",
