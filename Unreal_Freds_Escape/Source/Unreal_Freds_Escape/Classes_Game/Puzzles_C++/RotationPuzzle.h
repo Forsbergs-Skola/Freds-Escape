@@ -23,10 +23,15 @@ struct FRotatableRequirement
     UPROPERTY(EditInstanceOnly, Category = "Puzzle")
     float toleranceDegrees;
 
+    // Tracks if this toy was correct last time we checked
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Puzzle")
+    bool bWasCorrect;
+
     FRotatableRequirement()
         : targetActor(nullptr)
         , requiredRotation(FRotator::ZeroRotator)
         , toleranceDegrees(5.0f)
+        , bWasCorrect(false)
     {}
 };
 

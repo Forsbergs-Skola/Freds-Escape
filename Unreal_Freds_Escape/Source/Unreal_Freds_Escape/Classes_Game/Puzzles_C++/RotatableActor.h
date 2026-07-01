@@ -27,6 +27,14 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Puzzle")
     int32 FrameNumber;
 
+    // Event fired in Blueprints when this specific toy reaches its correct rotation
+    UFUNCTION(BlueprintImplementableEvent, Category = "Puzzle")
+    void OnCorrectRotation();
+
+    // Event fired in Blueprints when this specific toy is rotated away from its correct rotation
+    UFUNCTION(BlueprintImplementableEvent, Category = "Puzzle")
+    void OnIncorrectRotation();
+
 protected:
     virtual void BeginPlay() override;
 };

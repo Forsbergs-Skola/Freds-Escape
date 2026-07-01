@@ -16,7 +16,7 @@ void ARotationPuzzle::CheckSolution()
     bool allCorrect = true;
 
     // Loop through every toy on our list
-    for (const FRotatableRequirement& req : requiredRotations)
+    for (FRotatableRequirement& req : requiredRotations)
     {
         // Skip it if there is no actor in scene or someone forgot to connect it to plug a toy in
         if (!req.targetActor)
@@ -30,11 +30,26 @@ void ARotationPuzzle::CheckSolution()
         float angularDiffRads = req.targetActor->GetActorQuat().AngularDistance(req.requiredRotation.Quaternion());
         float angularDiffDeg = FMath::RadiansToDegrees(angularDiffRads);
 
+        bool bIsCurrentlyCorrect = (angularDiffDeg <= req.toleranceDegrees);
+
+        // Check if the state changed to correct
+        if (bIsCurrentlyCorrect && !req.bWasCorrect)
+        {
+            req.targetActor->OnCorrectRotation();
+        }
+        // Check if the state changed to incorrect
+        else if (!bIsCurrentlyCorrect && req.bWasCorrect)
+        {
+            req.targetActor->OnIncorrectRotation();
+        }
+
+        // Update the tracked state
+        req.bWasCorrect = bIsCurrentlyCorrect;
+
         // If it is rotated too far a fail check
-        if (angularDiffDeg > req.toleranceDegrees)
+        if (!bIsCurrentlyCorrect)
         {
             allCorrect = false;
-            break;
         }
     }
 
