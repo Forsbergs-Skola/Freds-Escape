@@ -30,5 +30,5 @@ public:
 
 	// Icon texture for the inventory grid slot
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
-	TSoftObjectPtr<UTexture2D> Icon;
+	UTexture2D* Icon;
 };
