@@ -72,7 +72,13 @@ void AKeypadPuzzle::CheckCode()
     }
     else
     {
-
+        // Force the puzzle out of the Failed state so that it can transition 
+        // back into it and trigger the Failed events/sounds again!
+        if (GetState() == EPuzzleState::Failed)
+        {
+            SetState(EPuzzleState::Active);
+        }
+        
         SetState(EPuzzleState::Failed);
         ClearInput();
     }
