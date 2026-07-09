@@ -20,3 +20,6 @@ FileOpenOrder/
 # Packaged builds
 *.pak
 *.sig
+
+# Ignore Data Assets
+Unreal_Freds_Escape/Content/Inventory/INV_DataAssets/
